@@ -4,7 +4,7 @@ The architecture of this model [1,2] is similar to that defined in the *Attentio
 
 The model is trained using the MedQuAD dataset [4, 5]. The MedQuAD dataset consists of medical questions and answers. It has a total of 16,413 rows, many of which have multiple answers for the same question. After manual inspection, it was decided to keep only the first answer correpsonding to the question, effectively decreasing the dataset size by roughly half. After combining the questions and answers into sequences, many had a length of 500 words, though some were as long as 3,500 words. Keeping CPU capabilities in mind, only sequences with 500 words in length or shorter were considered for training.
 
-![Distrbution of answer lengths.](https://raw.githubusercontent.com/shannonrumsey/medGPT/Figure_1.png)
+![Distrbution of answer lengths.](Figure_1.png)
 
 When applicable, the model utilizes Distributed Data Parallel to speed up processing [6]. During training, the model generates hypotheses for the context "What is (are) Glaucoma?" and produces four answer candidates. These generated answers are compared to the actual answers from the MedQuad dataset using the SacreBLEU metric [7]. SacreBLEU is a score that reflects how similar the generated output is to the expected output. 
 
