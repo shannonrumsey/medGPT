@@ -18,7 +18,7 @@ Question: *How many people are affected by Balance Problems?*
 
 Expected Output: *In 2008, an estimated 14.8 percent of American adults (33.4 million) had a balance or dizziness problem during the past year. See statistics about the frequency of balance and other sensory impairments in older adults. (Centers for Disease Control and Prevention)*
 
-Model Response: * This is the In and a to or treatment of a medical in the the these to a these other. in the prevent be the this brain, the may who This treat cause a the result may brain and*
+Model Response: *This is the In and a to or treatment of a medical in the the these to a these other. in the prevent be the this brain, the may who This treat cause a the result may brain and*
 
 ### Perfomance 
 
