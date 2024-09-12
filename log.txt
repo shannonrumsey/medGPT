@@ -1,0 +1,49 @@
+step: 0, val loss:  10.8263
+step: 0, loss:  10.8237
+step: 0, lr: 6.0000e-04, norm: 1.7580
+step: 1, loss:  10.7894
+step: 1, lr: 5.9410e-04, norm: 1.7397
+step: 2, loss:  10.6979
+step: 2, lr: 5.7666e-04, norm: 1.5374
+step: 3, loss:  10.6746
+step: 3, lr: 5.4843e-04, norm: 1.7770
+step: 4, loss:  10.5318
+step: 4, lr: 5.1067e-04, norm: 1.5759
+step: 5, val loss:  10.6247
+step: 5, bleu:  0.0000
+step: 5, loss:  10.5684
+step: 5, lr: 4.6500e-04, norm: 1.3871
+step: 6, loss:  10.5551
+step: 6, lr: 4.1343e-04, norm: 1.6546
+step: 7, loss:  10.4506
+step: 7, lr: 3.5822e-04, norm: 1.5542
+step: 8, loss:  10.4403
+step: 8, lr: 3.0178e-04, norm: 1.5406
+step: 9, loss:  10.4798
+step: 9, lr: 2.4657e-04, norm: 1.3384
+step: 10, val loss:  10.4450
+step: 10, bleu:  0.0000
+step: 10, loss:  10.3411
+step: 10, lr: 1.9500e-04, norm: 1.4835
+step: 11, loss:  10.1834
+step: 11, lr: 1.4933e-04, norm: 1.3522
+step: 12, loss:  10.0888
+step: 12, lr: 1.1157e-04, norm: 1.4626
+step: 13, loss:  10.3413
+step: 13, lr: 8.3343e-05, norm: 1.7046
+step: 14, loss:  10.4317
+step: 14, lr: 6.5900e-05, norm: 1.7126
+step: 15, val loss:  10.3758
+step: 15, bleu:  0.0000
+step: 15, loss:  10.3908
+step: 15, lr: 6.0000e-05, norm: 1.3331
+step: 16, loss:  10.2658
+step: 16, lr: 6.5900e-05, norm: 1.5173
+step: 17, loss:  10.1508
+step: 17, lr: 8.3343e-05, norm: 1.3328
+step: 18, loss:  10.0358
+step: 18, lr: 1.1157e-04, norm: 1.3708
+step: 19, val loss:  10.3385
+step: 19, bleu:  0.0000
+step: 19, loss:  10.2138
+step: 19, lr: 1.4933e-04, norm: 1.3422
