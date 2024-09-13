@@ -13,16 +13,16 @@ import sacrebleu
 
 # Configurations ------------
 enc = tiktoken.get_encoding("gpt2")
-total_batch_size = 256
-B = 4  # micro batch size
-T = 32  # sequence length
+total_batch_size = 10000
+B = 25  # micro batch size
+T = 100  # sequence length
 # tells torch what kind of precision to use for internal computations
 torch.set_float32_matmul_precision("high")
 max_lr = 6e-4
 min_lr = max_lr * 0.1
 # must warmup for AdamW optimizer
-warmup_steps = 5
-max_steps = 20
+warmup_steps = 75
+max_steps = 330  # this is about 1 epoch: ~3,200,000 tokens, 10,000 batch size
 # ---------------------------
 
 
@@ -41,7 +41,7 @@ class DataLoaderLite:
         self.T = T
         self.process_rank = process_rank
         self.num_proc = num_proc
-        assert split in {"train", "val"}, f"Not a valid split"
+        assert split in {"train", "val"}, f"{split} not a valid split"
 
         # load the shards
         DATA_SHARD_DIR = os.path.join(os.path.dirname(__file__),
@@ -134,7 +134,7 @@ if device_type == "cuda":
 # make sure batch size is divisible by B * T * ddp_world_size
 assert (
     total_batch_size % (B * T * ddp_world_size) == 0
-), f"Batch size is not divisible"
+), f"{total_batch_size} is not divisible"
 grad_accum_steps = total_batch_size // (B * T * ddp_world_size)
 if master_process:
     print(f"total desired batch size: {total_batch_size}")
@@ -170,10 +170,9 @@ scheduler = lr_scheduler.CosineAnnealingLR(
     T_max=max_steps - warmup_steps,
     eta_min=min_lr
 )
-
-log_path = "/Users/shannon/Documents/AK_tutorials/medGPT/log.txt"
+LOG_PATH = os.path.join(os.path.dirname(__file__), "log.txt")
 # log training loss and validation loss
-with open(log_path, "w") as f:
+with open(LOG_PATH, "w") as f:
     pass  # open file and pass to clear it
 
 for step in range(max_steps):
@@ -182,7 +181,7 @@ for step in range(max_steps):
 
     # every 10th interation we evaulute our validation loss
     # this will tell us if how much we are overfitting
-    if step % 5 == 0 or last_step:
+    if step % 25 == 0 or last_step:
         model.eval()
         val_loader.reset()
         with torch.no_grad():  # no gradients involved and no backward pass
@@ -202,16 +201,16 @@ for step in range(max_steps):
             val_loss_accum /= ddp_world_size
         if master_process:
             print(f"step: {step}, val loss: {val_loss_accum: .4f}\n")
-            with open(log_path, "a") as f:
+            with open(LOG_PATH, "a") as f:
                 f.write(f"step: {step}, val loss: {val_loss_accum: .4f}\n")
 
     # once in a while, generate text from the model, except step 0 (noise)
-    if step > 0 and step % 5 == 0 or last_step:
+    if step > 0 and step % 25 == 0 or last_step:
         model.eval()
-        num_return_sequences = 4
-        max_length = 500
-        tokens = enc.encode("What are the symptoms of Viral Hepatitis:"
-                            " A through E and Beyond?")
+        num_return_sequences = 1
+        max_length = 50
+        tokens = enc.encode("How many people are"
+                            " affected by Balance Problems?")
         input_length = len(tokens)
         tokens = torch.tensor(tokens, dtype=torch.long)
         # this is our idx in the forward function of GPT
@@ -233,7 +232,7 @@ for step in range(max_steps):
                 probs = F.softmax(logits, dim=-1)
                 # keeps 50 highest probabilities
                 # this way we are never sampling rare tokens
-                topk_probs, topk_indices = torch.topk(probs, 50, dim=-1)
+                topk_probs, topk_indices = torch.topk(probs, 100, dim=-1)
                 # selects token from top-k probabilities
                 ix = torch.multinomial(topk_probs, 1, generator=sample_rng)
                 # gathers corresponding indices and creates new column
@@ -243,11 +242,13 @@ for step in range(max_steps):
 
         # print the generated text and calculate BLEU score
         hypotheses = []
-        reference = [(" Symptoms include, jaundice, which causes a yellowing"
-                      "of the skin and eyes, fatigue, abdominal pain,"
-                      " loss of appetite, nausea, vomiting, diarrhea,"
-                      " low grade fever, headache However,"
-                      " some people do not have symptoms.")]
+        reference = [["In 2008, an estimated 14.8 percent"
+                      " of American adults (33.4 million)"
+                      " had a balance or dizziness problem"
+                      " during the past year. See statistics"
+                      " about the frequency of balance and other"
+                      " sensory impairments in older adults."
+                      " (Centers for Disease Control and Prevention)"]]
         for i in range(num_return_sequences):
             tokens = xgen[i, :max_length].tolist()
             predicted_tokens = tokens[input_length:]
@@ -257,7 +258,7 @@ for step in range(max_steps):
         print(f"Actual: {reference}, Model Attempt: {hypotheses}")
         print(f"step: {step}, bleu: {bleu.score: .4f}\n")
         if master_process:
-            with open(log_path, "a") as f:
+            with open(LOG_PATH, "a") as f:
                 f.write(f"step: {step}, bleu: {bleu.score: .4f}\n")
 
     # training loop
@@ -305,6 +306,7 @@ for step in range(max_steps):
         torch.cuda.synchronize()
     t1 = time.time()
     dt = t1 - t0  # time difference in seconds
+    print(f"One training step took: {dt} seconds")
     tokens_processed = (
         train_loader.B * train_loader.T * grad_accum_steps * ddp_world_size
     )
@@ -312,7 +314,7 @@ for step in range(max_steps):
     if master_process:
         print(f"step: {step}, loss: {loss_accum: .4f}\n")
         print(f"step: {step}, lr: {lr:.4e}, norm: {norm:.4f}\n")
-        with open(log_path, "a") as f:
+        with open(LOG_PATH, "a") as f:
             f.write(f"step: {step}, loss: {loss_accum: .4f}\n")
             f.write(f"step: {step}, lr: {lr:.4e}, norm: {norm:.4f}\n")
 if ddp:
